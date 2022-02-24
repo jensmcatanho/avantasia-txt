@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"os"
 	"time"
+
+	"github.com/jensmcatanho/avantasia-txt/models"
 )
 
 func main() {
@@ -18,21 +20,11 @@ func main() {
 
 	decoder := json.NewDecoder(songJson)
 
-	var song Song
+	var song models.Song
 	err = decoder.Decode(&song)
 	if err != nil {
 		fmt.Printf("Error: %+v", err)
 	}
 
-	fmt.Printf("%s\n", song.getLyric())
-}
-
-type Song struct {
-	Name   string   `json:"name"`
-	Album  string   `json:"album"`
-	Lyrics []string `json:"lyrics"`
-}
-
-func (s *Song) getLyric() string {
-	return s.Lyrics[rand.Intn(len(s.Lyrics))]
+	fmt.Printf("%s\n", song.GetLyric())
 }
