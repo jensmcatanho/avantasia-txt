@@ -1,8 +1,11 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
+	"github.com/jensmcatanho/avantasia-txt/models"
 )
 
 type TwitterClient struct {
@@ -27,7 +30,18 @@ func NewTwitterClient(credentials Credentials) *TwitterClient {
 	}
 }
 
-func (t *TwitterClient) Tweet(tweet string) error {
-	_, _, err := t.client.Statuses.Update(tweet, nil)
-	return err
+func (t *TwitterClient) Tweet(song *models.Song) error {
+	tweet, _, err := t.client.Statuses.Update(song.GetLyric(), nil)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = t.client.Statuses.Update(fmt.Sprintf("Song: %s\nAlbum: %s", song.Name, song.Album), &twitter.StatusUpdateParams{
+		InReplyToStatusID: tweet.ID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

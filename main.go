@@ -39,7 +39,7 @@ func TweetHandler(context echo.Context) error {
 	}
 
 	log.Printf("Song: %s\n", song.Name)
-	err = twitterClient.Tweet(song.GetLyric())
+	err = twitterClient.Tweet(song)
 	if err != nil {
 		log.Printf("Error: %+v", err)
 		return context.NoContent(http.StatusInternalServerError)
