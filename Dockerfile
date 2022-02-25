@@ -10,4 +10,6 @@ COPY . ./
 
 RUN go build -o /avantasia-txt
 
+EXPOSE 8080
+
 CMD [ "/avantasia-txt" ]
