@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
@@ -35,6 +36,8 @@ func (t *TwitterClient) Tweet(song *models.Song) error {
 	if err != nil {
 		return err
 	}
+
+	time.Sleep(50 * time.Millisecond)
 
 	_, _, err = t.client.Statuses.Update(fmt.Sprintf("Song: %s\nAlbum: %s", song.Name, song.Album), &twitter.StatusUpdateParams{
 		InReplyToStatusID: tweet.ID,
