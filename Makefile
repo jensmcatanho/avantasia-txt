@@ -1,6 +1,6 @@
 
 build:
-	go build -o avantasia_txt
+	docker image build . -t avantasia-txt
 
 run: build
-	./avantasia_txt
+	docker run --env-file=.env avantasia-txt
