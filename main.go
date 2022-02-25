@@ -49,7 +49,11 @@ func TweetHandler(context echo.Context) error {
 }
 
 func getRandomSong() (*models.Song, error) {
-	album := "the_wicked_symphony"
+	albumFolders, err := ioutil.ReadDir("albums")
+	if err != nil {
+		log.Fatal(err)
+	}
+	album := albumFolders[rand.Intn(len(albumFolders))].Name()
 
 	songFiles, err := ioutil.ReadDir(fmt.Sprintf("albums/%s", album))
 	if err != nil {
