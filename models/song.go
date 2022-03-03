@@ -3,9 +3,10 @@ package models
 import "math/rand"
 
 type Song struct {
-	Name   string   `json:"name"`
-	Album  string   `json:"album"`
-	Lyrics []string `json:"lyrics"`
+	ID     string   `json:"id" firestore:"id"`
+	Name   string   `json:"name"  firestore:"name"`
+	Album  string   `json:"album"  firestore:"album"`
+	Lyrics []string `json:"lyrics"  firestore:"lyrics"`
 }
 
 func (s *Song) GetLyric() string {

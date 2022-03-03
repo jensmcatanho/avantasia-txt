@@ -1,15 +1,14 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"context"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"time"
 
+	firebase "firebase.google.com/go"
 	"github.com/jensmcatanho/avantasia-txt/client"
 	"github.com/jensmcatanho/avantasia-txt/models"
 	"github.com/labstack/echo/v4"
@@ -31,45 +30,46 @@ func main() {
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
-func TweetHandler(context echo.Context) error {
-	song, err := getRandomSong()
+func TweetHandler(echoContext echo.Context) error {
+	song, err := getRandomSong(echoContext.Request().Context())
 	if err != nil {
 		log.Printf("Error: %+v", err)
-		return context.NoContent(http.StatusInternalServerError)
+		return echoContext.NoContent(http.StatusInternalServerError)
 	}
 
 	log.Printf("Song: %s\n", song.Name)
 	err = twitterClient.Tweet(song)
 	if err != nil {
 		log.Printf("Error: %+v", err)
-		return context.NoContent(http.StatusInternalServerError)
+		return echoContext.NoContent(http.StatusInternalServerError)
 	}
 
-	return context.NoContent(http.StatusOK)
+	return echoContext.NoContent(http.StatusOK)
 }
 
-func getRandomSong() (*models.Song, error) {
-	albumFolders, err := ioutil.ReadDir("albums")
-	if err != nil {
-		log.Fatal(err)
-	}
-	album := albumFolders[rand.Intn(len(albumFolders))].Name()
-
-	songFiles, err := ioutil.ReadDir(fmt.Sprintf("albums/%s", album))
-	if err != nil {
-		log.Fatal(err)
+func getRandomSong(ctx context.Context) (*models.Song, error) {
+	conf := &firebase.Config{
+		DatabaseURL: os.Getenv("FIREBASE_URL"),
 	}
 
-	songFile := songFiles[rand.Intn(len(songFiles))]
-	songJson, err := os.Open(fmt.Sprintf("albums/%s/%s", album, songFile.Name()))
+	app, err := firebase.NewApp(ctx, conf)
 	if err != nil {
 		return nil, err
 	}
 
-	decoder := json.NewDecoder(songJson)
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		return nil, err
+	}
 
+	documents, err := client.Collection("songs").Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	randomDocument := documents[rand.Intn(len(documents))]
 	var song models.Song
-	err = decoder.Decode(&song)
+	err = randomDocument.DataTo(&song)
 	if err != nil {
 		return nil, err
 	}
