@@ -29,7 +29,8 @@ func main() {
 		AccessTokenSecret: os.Getenv("ACCESS_TOKEN_SECRET"),
 	})
 
-	totalSongs, err := strconv.Atoi(os.Getenv("TOTAL_SONGS"))
+	var err error
+	totalSongs, err = strconv.Atoi(os.Getenv("TOTAL_SONGS"))
 	if err != nil {
 		log.Fatal(err)
 	}
