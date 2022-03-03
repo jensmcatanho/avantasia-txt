@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -73,7 +72,7 @@ func getRandomSong(ctx context.Context) (*models.Song, error) {
 		return nil, err
 	}
 
-	iter := client.Collection("songs").Where("id", "==", fmt.Sprint(rand.Intn(totalSongs)+1)).Limit(1).Documents(ctx)
+	iter := client.Collection("songs").Where("id", "==", rand.Intn(totalSongs)+1).Documents(ctx)
 	document, err := iter.Next()
 	if err != nil {
 		return nil, err
