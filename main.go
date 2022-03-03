@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	firebase "firebase.google.com/go"
@@ -14,7 +15,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var twitterClient *client.TwitterClient
+var (
+	twitterClient *client.TwitterClient
+	totalSongs    int
+)
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -24,6 +28,11 @@ func main() {
 		AccessToken:       os.Getenv("ACCESS_TOKEN"),
 		AccessTokenSecret: os.Getenv("ACCESS_TOKEN_SECRET"),
 	})
+
+	totalSongs, err := strconv.Atoi(os.Getenv("TOTAL_SONGS"))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	e := echo.New()
 	e.GET("/tweet", TweetHandler)
@@ -62,14 +71,14 @@ func getRandomSong(ctx context.Context) (*models.Song, error) {
 		return nil, err
 	}
 
-	documents, err := client.Collection("songs").Documents(ctx).GetAll()
+	iter := client.Collection("songs").Where("id", "==", string(rand.Intn(totalSongs))).Limit(1).Documents(ctx)
+	document, err := iter.Next()
 	if err != nil {
 		return nil, err
 	}
 
-	randomDocument := documents[rand.Intn(len(documents))]
 	var song models.Song
-	err = randomDocument.DataTo(&song)
+	err = document.DataTo(&song)
 	if err != nil {
 		return nil, err
 	}
