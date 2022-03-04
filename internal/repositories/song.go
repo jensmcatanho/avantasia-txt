@@ -7,7 +7,6 @@ import (
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"github.com/jensmcatanho/avantasia-txt/internal/core/domain"
-	"google.golang.org/api/option"
 )
 
 type songRepository struct {
@@ -20,9 +19,8 @@ func NewSongRepository() (*songRepository, error) {
 	firebaseConfig := &firebase.Config{
 		DatabaseURL: os.Getenv("FIREBASE_URL"),
 	}
-	opt := option.WithCredentialsFile("key.json")
 
-	app, err := firebase.NewApp(ctx, firebaseConfig, opt)
+	app, err := firebase.NewApp(ctx, firebaseConfig)
 	if err != nil {
 		return nil, err
 	}
