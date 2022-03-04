@@ -8,4 +8,5 @@ import (
 
 type SongRepository interface {
 	GetSongByID(ctx context.Context, id int) (*domain.Song, error)
+	GetSongByName(ctx context.Context, name string) (*domain.Song, error)
 }

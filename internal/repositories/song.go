@@ -38,7 +38,15 @@ func NewSongRepository() (*songRepository, error) {
 }
 
 func (sr *songRepository) GetSongByID(ctx context.Context, id int) (*domain.Song, error) {
-	iter := sr.client.Collection("songs").Where("id", "==", id).Documents(ctx)
+	return sr.getSong(ctx, "id", id)
+}
+
+func (sr *songRepository) GetSongByName(ctx context.Context, name string) (*domain.Song, error) {
+	return sr.getSong(ctx, "name", name)
+}
+
+func (sr *songRepository) getSong(ctx context.Context, searchField string, value interface{}) (*domain.Song, error) {
+	iter := sr.client.Collection("songs").Where(searchField, "==", value).Documents(ctx)
 	document, err := iter.Next()
 	if err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/jensmcatanho/avantasia-txt/internal/core/domain"
 	"github.com/jensmcatanho/avantasia-txt/internal/core/ports"
@@ -31,10 +32,29 @@ func (sh *songHandler) SetupEndpoints() {
 
 func (sh *songHandler) tweetLyrics(echoContext echo.Context) error {
 	logger := sh.context.Logger()
-	song, err := sh.songService.GetRandomSong(echoContext.Request().Context())
-	if err != nil {
-		logger.Error(err.Error())
-		return echoContext.NoContent(http.StatusInternalServerError)
+	requestContext := echoContext.Request().Context()
+	songName := echoContext.QueryParam("song")
+
+	var song *domain.Song
+	var err error
+	if songName == "" {
+		song, err = sh.songService.GetRandomSong(requestContext)
+		if err != nil {
+			logger.Error(err.Error())
+			return echoContext.NoContent(http.StatusInternalServerError)
+		}
+	} else {
+		songNameDecoded, err := url.QueryUnescape(songName)
+		if err != nil {
+			logger.Error(err.Error())
+			return echoContext.NoContent(http.StatusBadRequest)
+		}
+
+		song, err = sh.songService.GetSongByName(requestContext, songNameDecoded)
+		if err != nil {
+			logger.Error(err.Error())
+			return echoContext.NoContent(http.StatusInternalServerError)
+		}
 	}
 
 	err = sh.twitterService.Tweet(song)

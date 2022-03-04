@@ -42,3 +42,12 @@ func (s *songService) getSongByID(ctx context.Context, id int) (*domain.Song, er
 
 	return song, nil
 }
+
+func (s *songService) GetSongByName(ctx context.Context, name string) (*domain.Song, error) {
+	song, err := s.songRepository.GetSongByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return song, nil
+}
