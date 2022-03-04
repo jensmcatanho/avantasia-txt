@@ -1,4 +1,4 @@
-package client
+package services
 
 import (
 	"fmt"
@@ -6,38 +6,33 @@ import (
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
-	"github.com/jensmcatanho/avantasia-txt/models"
+	"github.com/jensmcatanho/avantasia-txt/internal/core/domain"
 )
 
-type TwitterClient struct {
+const replyDelay = 100 * time.Millisecond
+
+type twitterService struct {
 	client *twitter.Client
 }
 
-type Credentials struct {
-	ConsumerKey       string
-	ConsumerSecret    string
-	AccessToken       string
-	AccessTokenSecret string
-}
-
-func NewTwitterClient(credentials Credentials) *TwitterClient {
+func NewTwitterService(credentials *domain.TwitterCredentials) *twitterService {
 	config := oauth1.NewConfig(credentials.ConsumerKey, credentials.ConsumerSecret)
 	token := oauth1.NewToken(credentials.AccessToken, credentials.AccessTokenSecret)
 	httpClient := config.Client(oauth1.NoContext, token)
 
 	client := twitter.NewClient(httpClient)
-	return &TwitterClient{
+	return &twitterService{
 		client: client,
 	}
 }
 
-func (t *TwitterClient) Tweet(song *models.Song) error {
+func (t *twitterService) Tweet(song *domain.Song) error {
 	tweet, _, err := t.client.Statuses.Update(song.GetLyric(), nil)
 	if err != nil {
 		return err
 	}
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(replyDelay)
 
 	_, _, err = t.client.Statuses.Update(fmt.Sprintf("Song: %s\nAlbum: %s", song.Name, song.Album), &twitter.StatusUpdateParams{
 		InReplyToStatusID: tweet.ID,
