@@ -9,6 +9,7 @@ type Song struct {
 	Lyrics []string `json:"lyrics"  firestore:"lyrics"`
 }
 
-func (s *Song) GetLyric() string {
+func (s *Song) GetRandomLyric() string {
 	return s.Lyrics[rand.Intn(len(s.Lyrics))]
+
 }

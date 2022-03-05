@@ -2,6 +2,8 @@ package services
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
@@ -26,16 +28,38 @@ func NewTwitterService(credentials *domain.TwitterCredentials) *twitterService {
 	}
 }
 
-func (t *twitterService) Tweet(song *domain.Song) error {
-	tweet, _, err := t.client.Statuses.Update(song.GetLyric(), nil)
+func (t *twitterService) TweetLyric(song *domain.Song, lyricID string) error {
+	lyric, err := strconv.Atoi(lyricID)
 	if err != nil {
 		return err
 	}
 
+	return t.tweetLyric(song, lyric)
+}
+
+func (t *twitterService) TweetRandomLyric(song *domain.Song) error {
+	return t.tweetLyric(song, rand.Intn(len(song.Lyrics)))
+}
+
+func (t *twitterService) tweetLyric(song *domain.Song, lyricID int) error {
+	tweet, _, err := t.client.Statuses.Update(song.Lyrics[lyricID], nil)
+	if err != nil {
+		return err
+	}
+
+	err = t.reply(tweet.ID, song)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *twitterService) reply(tweetID int64, song *domain.Song) error {
 	time.Sleep(replyDelay)
 
-	_, _, err = t.client.Statuses.Update(fmt.Sprintf("Song: %s\nAlbum: %s", song.Name, song.Album), &twitter.StatusUpdateParams{
-		InReplyToStatusID: tweet.ID,
+	_, _, err := t.client.Statuses.Update(fmt.Sprintf("Song: %s\nAlbum: %s", song.Name, song.Album), &twitter.StatusUpdateParams{
+		InReplyToStatusID: tweetID,
 	})
 	if err != nil {
 		return err
