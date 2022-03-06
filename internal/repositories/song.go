@@ -35,26 +35,35 @@ func NewSongRepository() (*songRepository, error) {
 	}, nil
 }
 
-func (sr *songRepository) GetSongByID(ctx context.Context, id int) (*domain.Song, error) {
+func (sr *songRepository) GetSongByID(ctx context.Context, id int) (*domain.Song, string, error) {
 	return sr.getSong(ctx, "id", id)
 }
 
-func (sr *songRepository) GetSongByName(ctx context.Context, name string) (*domain.Song, error) {
+func (sr *songRepository) GetSongByName(ctx context.Context, name string) (*domain.Song, string, error) {
 	return sr.getSong(ctx, "name", name)
 }
 
-func (sr *songRepository) getSong(ctx context.Context, searchField string, value interface{}) (*domain.Song, error) {
+func (sr *songRepository) getSong(ctx context.Context, searchField string, value interface{}) (*domain.Song, string, error) {
 	iter := sr.client.Collection("songs").Where(searchField, "==", value).Documents(ctx)
 	document, err := iter.Next()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var song domain.Song
 	err = document.DataTo(&song)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return &song, nil
+	return &song, document.Ref.ID, nil
+}
+
+func (sr *songRepository) UpdateSong(ctx context.Context, referenceID string, song *domain.Song) error {
+	_, err := sr.client.Collection("songs").Doc(referenceID).Update(ctx, []firestore.Update{{
+		Path:  "lyrics",
+		Value: song.Lyrics,
+	}})
+
+	return err
 }

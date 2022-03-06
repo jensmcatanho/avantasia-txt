@@ -28,6 +28,7 @@ func NewSongsHandler(ctx *domain.AppContext, e *echo.Echo, songService ports.Son
 
 func (sh *songHandler) SetupEndpoints() {
 	sh.echo.GET("/tweet", sh.tweetLyrics)
+	sh.echo.PATCH("/lyric", sh.updateLyric)
 }
 
 type tweetLyricsQueryParams struct {
@@ -99,4 +100,29 @@ func (sh *songHandler) tweetLyric(echoContext echo.Context, song *domain.Song, q
 	}
 
 	return nil
+}
+
+type updateLyricPayload struct {
+	Song     string `json:"song"`
+	LyricID  string `json:"lyric_id"`
+	NewLyric string `json:"new_lyric"`
+}
+
+func (sh *songHandler) updateLyric(echoContext echo.Context) error {
+	logger := sh.context.Logger()
+	requestContext := echoContext.Request().Context()
+
+	var payload updateLyricPayload
+	if err := (&echo.DefaultBinder{}).BindBody(echoContext, &payload); err != nil {
+		logger.Error(err.Error())
+		return echoContext.NoContent(http.StatusBadRequest)
+	}
+
+	err := sh.songService.UpdateSongLyric(requestContext, payload.Song, payload.LyricID, payload.NewLyric)
+	if err != nil {
+		logger.Error(err.Error())
+		return echoContext.NoContent(http.StatusInternalServerError)
+	}
+
+	return echoContext.NoContent(http.StatusNoContent)
 }

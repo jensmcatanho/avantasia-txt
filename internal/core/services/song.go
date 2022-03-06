@@ -35,7 +35,7 @@ func (s *songService) GetSongByID(ctx context.Context, id int) (*domain.Song, er
 }
 
 func (s *songService) getSongByID(ctx context.Context, id int) (*domain.Song, error) {
-	song, err := s.songRepository.GetSongByID(ctx, id)
+	song, _, err := s.songRepository.GetSongByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -44,10 +44,30 @@ func (s *songService) getSongByID(ctx context.Context, id int) (*domain.Song, er
 }
 
 func (s *songService) GetSongByName(ctx context.Context, name string) (*domain.Song, error) {
-	song, err := s.songRepository.GetSongByName(ctx, name)
+	song, _, err := s.songRepository.GetSongByName(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 
 	return song, nil
+}
+
+func (s *songService) UpdateSongLyric(ctx context.Context, name string, lyricID string, newLyric string) error {
+	parsedLyricID, err := strconv.Atoi(lyricID)
+	if err != nil {
+		return err
+	}
+
+	song, referenceID, err := s.songRepository.GetSongByName(ctx, name)
+	if err != nil {
+		return err
+	}
+
+	song.Lyrics[parsedLyricID] = newLyric
+	err = s.songRepository.UpdateSong(ctx, referenceID, song)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
